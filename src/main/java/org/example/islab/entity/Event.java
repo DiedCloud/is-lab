@@ -40,10 +40,12 @@ public class Event {
     public Event(
             final String name,
             final Long minAge,
-            final Integer ticketsCount
+            final Integer ticketsCount,
+            final User user
     ) {
         this.name = name;
         this.minAge = minAge;
         this.ticketsCount = ticketsCount;
+        this.owner = user;
     }
 }

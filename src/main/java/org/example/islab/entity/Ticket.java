@@ -73,7 +73,8 @@ public class Ticket {
             final float discount,
             final long number,
             final String comment,
-            final Venue venue
+            final Venue venue,
+            final User user
     ) {
         this.name = name;
         this.coordinates = coordinates;
@@ -86,5 +87,6 @@ public class Ticket {
         this.number = number;
         this.comment = comment;
         this.venue = venue;
+        this.owner = user;
     }
 }

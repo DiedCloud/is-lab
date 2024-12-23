@@ -43,10 +43,12 @@ public class Venue {
     public Venue(
             final String name,
             final int capacity,
-            final VenueType type
+            final VenueType type,
+            final User user
     ) {
         this.name = name;
         this.capacity = capacity;
         this.type = type;
+        this.owner = user;
     }
 }
