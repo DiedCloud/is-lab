@@ -48,4 +48,8 @@ public class EventService {
 
         eventRepository.deleteById(id);
     }
+
+    public void cancelEvent(Long id) {
+        eventRepository.cancelEvent(id);
+    }
 }

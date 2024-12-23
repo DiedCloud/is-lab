@@ -56,4 +56,20 @@ public class TicketService {
 
         ticketRepository.deleteById(id);
     }
+
+    public Long getTotalNumber() {
+        return ticketRepository.getTotalNumber();
+    }
+
+    public List<Ticket> findBySubstring(String substring) {
+        return ticketRepository.findBySubstring(substring);
+    }
+
+    public List<Ticket> findByPrefix(String prefix) {
+        return ticketRepository.findByPrefix(prefix);
+    }
+
+    public Ticket duplicateAsVip(Long id) {
+        return ticketRepository.duplicateAsVip(id);
+    }
 }

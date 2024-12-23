@@ -58,6 +58,14 @@ public class EventController {
         return ResponseEntity.noContent().build();
     }
 
+    @DeleteMapping("/{id}/cancel")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public ResponseEntity<?> cancelEvent(@PathVariable Long id) {
+        eventService.cancelEvent(id);
+        simpMessagingTemplate.convertAndSend("/topic/removeEvent", id);
+        return ResponseEntity.noContent().build();
+    }
+
     private EventDTO convertToDto(Event event){
         return new EventDTO(
                 event.getName(),

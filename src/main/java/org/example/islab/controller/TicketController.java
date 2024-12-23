@@ -61,6 +61,33 @@ public class TicketController {
         return ResponseEntity.noContent().build();
     }
 
+    @GetMapping("/total-number")
+    @ResponseStatus(HttpStatus.OK)
+    public Long getTotalNumber() {
+        return ticketService.getTotalNumber();
+    }
+
+    @GetMapping("/find-by-substring")
+    @ResponseStatus(HttpStatus.OK)
+    public List<TicketDTO> findBySubstring(@RequestBody String substring) {
+        return ticketService.findBySubstring(substring).stream().map(this::convertToDto).toList();
+    }
+
+    @GetMapping("/find-by-prefix")
+    @ResponseStatus(HttpStatus.OK)
+    public List<TicketDTO> findByPrefix(@RequestBody String prefix) {
+        return ticketService.findByPrefix(prefix).stream().map(this::convertToDto).toList();
+    }
+
+    @PostMapping("/duplicate-vip")
+    @ResponseStatus(HttpStatus.CREATED)
+    public Long duplicateAsVip(@PathVariable Long id) {
+        Ticket saved = ticketService.duplicateAsVip(id);
+        simpMessagingTemplate.convertAndSend("/topic/newTicket", saved);
+        return saved.getId();
+    }
+
+
     private TicketDTO convertToDto(Ticket ticket){
         return new TicketDTO(
                 ticket.getId(),
