@@ -34,11 +34,11 @@ public class EventController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public ResponseEntity<?> createEvent(@RequestBody EventDTO dto) {
+    public Long createEvent(@RequestBody EventDTO dto) {
         Event entity = convertToEntity(dto, userService.getCurrentUser());
         Event saved = eventService.create(entity);
         simpMessagingTemplate.convertAndSend("/topic/newEvent", saved);
-        return ResponseEntity.noContent().build();
+        return saved.getId();
     }
 
     @PutMapping("/{id}")

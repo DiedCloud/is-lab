@@ -34,11 +34,11 @@ public class VenueController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public ResponseEntity<?> createVenue(@RequestBody VenueDTO dto) {
+    public Long createVenue(@RequestBody VenueDTO dto) {
         Venue entity = convertToEntity(dto, userService.getCurrentUser());
         Venue saved = venueService.create(entity);
         simpMessagingTemplate.convertAndSend("/topic/newVenue", saved);
-        return ResponseEntity.noContent().build();
+        return saved.getId();
     }
 
     @PutMapping("/{id}")
