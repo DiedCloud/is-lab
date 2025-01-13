@@ -5,7 +5,7 @@ create table Users
     id                      bigserial        primary key,
     credentials_non_expired boolean          not null,
     enabled                 boolean          not null,
-    login                   varchar(255)     not null,
+    login                   varchar(255)     not null unique,
     non_expired             boolean          not null,
     non_locked              boolean          not null,
     pass                    varchar(255)     not null,

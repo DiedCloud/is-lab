@@ -2,6 +2,7 @@ package org.example.islab.controller;
 
 import org.example.islab.configuration.SecurityConfig;
 import org.example.islab.configuration.auth.SessionHandler;
+import org.example.islab.dto.AuthRequestDTO;
 import org.example.islab.entity.User;
 import org.example.islab.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,15 +37,12 @@ public class AuthController {
 
     @CrossOrigin
     @PostMapping("/login")
-    public ResponseEntity<String> login(
-            @RequestBody final String username,
-            @RequestBody final String password
-    ) {
+    public ResponseEntity<String> login(@RequestBody final AuthRequestDTO request) {
         manager.authenticate(new UsernamePasswordAuthenticationToken(
-                username, password
+                request.getUsername(), request.getPassword()
         ));
 
-        final String sessionID = handler.register(username);
+        final String sessionID = handler.register(request.getUsername());
         return ResponseEntity.ok(sessionID);
     }
 
@@ -57,13 +55,10 @@ public class AuthController {
 
     @CrossOrigin
     @PostMapping("/registration")
-    public ResponseEntity<String> registration(
-            @RequestBody final String username,
-            @RequestBody final String password
-    ) {
+    public ResponseEntity<String> registration(@RequestBody final AuthRequestDTO request) {
         User newUser = new User();
-        newUser.setLogin(username);
-        newUser.setPass(config.passwordEncoder().encode(password));
+        newUser.setLogin(request.getUsername());
+        newUser.setPass(config.passwordEncoder().encode(request.getPassword()));
         newUser.setNonExpired(true);
         newUser.setNonLocked(true);
         newUser.setCredentialsNonExpired(true);
@@ -72,9 +67,9 @@ public class AuthController {
             repository.save(newUser);
         } catch (Throwable e) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-                    "Cannot register user with that username (" + username + ") " +
+                    "Cannot register user with that username (" + request.getUsername() + ") " +
                             "( / highly likely it already exists).");
         }
-        return login(username, password);
+        return login(request);
     }
 }

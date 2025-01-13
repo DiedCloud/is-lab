@@ -40,7 +40,6 @@ public class WebSocketConfiguration implements WebSocketMessageBrokerConfigurer 
         registration.interceptors(authChannelInterceptorAdapter);
     }
 
-    // ВОСХИТИТЕЛЬНЫЙ КОСТЫЛЬ
     @Bean("csrfChannelInterceptor")
     ChannelInterceptor noopCsrfChannelInterceptor() {
         return new ChannelInterceptor() {};
