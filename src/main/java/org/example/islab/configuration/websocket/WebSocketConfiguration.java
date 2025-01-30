@@ -1,6 +1,6 @@
 package org.example.islab.configuration.websocket;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.AllArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.Ordered;
@@ -15,13 +15,9 @@ import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerCo
 @Configuration
 @Order(Ordered.HIGHEST_PRECEDENCE + 99)
 @EnableWebSocketMessageBroker
+@AllArgsConstructor
 public class WebSocketConfiguration implements WebSocketMessageBrokerConfigurer {
-    private final AuthChannelInterceptorAdapter authChannelInterceptorAdapter;
-
-    @Autowired
-    public WebSocketConfiguration(AuthChannelInterceptorAdapter authChannelInterceptorAdapter){
-        this.authChannelInterceptorAdapter = authChannelInterceptorAdapter;
-    }
+    private final AuthChanelInterceptorAdapter authChanelInterceptorAdapter;
 
     @Override
     public void configureMessageBroker(MessageBrokerRegistry config) {
@@ -37,7 +33,7 @@ public class WebSocketConfiguration implements WebSocketMessageBrokerConfigurer 
 
     @Override
     public void  configureClientInboundChannel(ChannelRegistration registration) {
-        registration.interceptors(authChannelInterceptorAdapter);
+        registration.interceptors(authChanelInterceptorAdapter);
     }
 
     @Bean("csrfChannelInterceptor")

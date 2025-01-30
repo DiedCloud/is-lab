@@ -1,11 +1,11 @@
 package org.example.islab.configuration;
 
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.AllArgsConstructor;
 import org.example.islab.configuration.auth.SessionFilter;
 import org.example.islab.service.UserService;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.messaging.Message;
@@ -31,21 +31,11 @@ import static org.springframework.security.config.Customizer.withDefaults;
 @EqualsAndHashCode
 @Configuration
 @EnableWebSecurity
+@AllArgsConstructor
 public class SecurityConfig {
     private final UserService userService;
     private final SessionFilter sessionFilter;
     private final MvcRequestMatcher.Builder mvc;
-
-    @Autowired
-    public SecurityConfig(
-            final UserService userService,
-            final SessionFilter sessionFilter,
-            final MvcRequestMatcher.Builder mvc
-    ) {
-        this.userService = userService;
-        this.sessionFilter = sessionFilter;
-        this.mvc = mvc;
-    }
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -82,6 +72,7 @@ public class SecurityConfig {
         http.authorizeHttpRequests((ar) -> {
             ar.requestMatchers(mvc.pattern("/auth/login")).permitAll();
             ar.requestMatchers(mvc.pattern("/auth/registration")).permitAll();
+            ar.requestMatchers(mvc.pattern("/socket/**")).permitAll(); // Открыты все чтобы можно было подключиться, на стадии подписки скидывает через AuthChanellInterceptorAdapter. TODO ?
             ar.anyRequest().authenticated();
         }).httpBasic(withDefaults());
 

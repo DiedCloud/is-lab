@@ -1,8 +1,8 @@
 package org.example.islab.configuration.websocket;
 
+import lombok.AllArgsConstructor;
 import org.example.islab.configuration.auth.SessionHandler;
 import org.example.islab.service.UserService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.simp.stomp.StompCommand;
@@ -16,15 +16,10 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
 @Component
-public class AuthChannelInterceptorAdapter implements ChannelInterceptor {
+@AllArgsConstructor
+public class AuthChanelInterceptorAdapter implements ChannelInterceptor {
     private final SessionHandler sessionHandler;
     private final UserService userService;
-
-    @Autowired
-    public AuthChannelInterceptorAdapter(SessionHandler sessionHandler, UserService userService){
-        this.sessionHandler = sessionHandler;
-        this.userService = userService;
-    }
 
     @Override
     public Message<?> preSend(Message<?> message, MessageChannel channel){
@@ -34,7 +29,7 @@ public class AuthChannelInterceptorAdapter implements ChannelInterceptor {
         }
 
         if (StompCommand.CONNECT == accessor.getCommand()) {
-            String token = accessor.getFirstNativeHeader("authorization");
+            String token = accessor.getFirstNativeHeader("Authorization");
             if (token == null){
                 throw new BadCredentialsException("");
             }
