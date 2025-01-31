@@ -5,6 +5,7 @@ import org.example.islab.configuration.auth.SessionHandler;
 import org.example.islab.dto.AuthRequestDTO;
 import org.example.islab.entity.User;
 import org.example.islab.repository.UserRepository;
+import org.example.islab.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -21,18 +22,20 @@ public class AuthController {
     private final SessionHandler handler;
     private final UserRepository repository;
     private final SecurityConfig config;
+    private final UserService userService;
 
     @Autowired
     public AuthController(
             final AuthenticationManager manager,
             final SessionHandler handler,
             final UserRepository repository,
-            final SecurityConfig config
-    ) {
+            final SecurityConfig config,
+            final UserService userService) {
         this.manager = manager;
         this.handler = handler;
         this.repository = repository;
         this.config = config;
+        this.userService = userService;
     }
 
     @CrossOrigin
@@ -71,5 +74,12 @@ public class AuthController {
                             "( / highly likely it already exists).");
         }
         return login(request);
+    }
+
+    @GetMapping("/whoAmI")
+    public ResponseEntity<User> whoAmI() {
+        User user = userService.getCurrentUser();
+        user.setPass(null);
+        return ResponseEntity.ok(user);
     }
 }

@@ -40,7 +40,7 @@ public class TicketController {
     public Long createTicket(@RequestBody TicketDTO dto) {
         Ticket entity = convertToEntity(dto, userService.getCurrentUser());
         Ticket saved = ticketService.create(entity);
-        simpMessagingTemplate.convertAndSend("/topic/newTicket", saved);
+        simpMessagingTemplate.convertAndSend("/topic/newTicket", convertToDto(saved));
         return saved.getId();
     }
 
@@ -115,7 +115,8 @@ public class TicketController {
                 (double) ticket.getDiscount(),
                 ticket.getNumber(),
                 ticket.getComment(),
-                ticket.getVenue().getId()
+                ticket.getVenue().getId(),
+                ticket.getOwner().getId()
         );
     }
 

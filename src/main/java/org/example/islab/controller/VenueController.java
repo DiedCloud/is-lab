@@ -37,7 +37,7 @@ public class VenueController {
     public Long createVenue(@RequestBody VenueDTO dto) {
         Venue entity = convertToEntity(dto, userService.getCurrentUser());
         Venue saved = venueService.create(entity);
-        simpMessagingTemplate.convertAndSend("/topic/newVenue", saved);
+        simpMessagingTemplate.convertAndSend("/topic/newVenue", convertToDto(saved));
         return saved.getId();
     }
 
@@ -60,9 +60,11 @@ public class VenueController {
 
     private VenueDTO convertToDto(Venue venue){
         return new VenueDTO(
+                venue.getId(),
                 venue.getName(),
                 venue.getCapacity(),
-                venue.getType()
+                venue.getType(),
+                venue.getOwner().getId()
         );
     }
 

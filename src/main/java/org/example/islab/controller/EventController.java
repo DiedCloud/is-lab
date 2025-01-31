@@ -37,7 +37,7 @@ public class EventController {
     public Long createEvent(@RequestBody EventDTO dto) {
         Event entity = convertToEntity(dto, userService.getCurrentUser());
         Event saved = eventService.create(entity);
-        simpMessagingTemplate.convertAndSend("/topic/newEvent", saved);
+        simpMessagingTemplate.convertAndSend("/topic/newEvent", convertToDto(saved));
         return saved.getId();
     }
 
@@ -68,9 +68,11 @@ public class EventController {
 
     private EventDTO convertToDto(Event event){
         return new EventDTO(
+                event.getId(),
                 event.getName(),
                 event.getMinAge(),
-                event.getTicketsCount()
+                event.getTicketsCount(),
+                event.getOwner().getId()
         );
     }
 
