@@ -30,4 +30,8 @@ public class UserService implements UserDetailsService {
     public User getCurrentUser() {
         return getByLogin(SecurityContextHolder.getContext().getAuthentication().getName());
     }
+
+    public boolean isFirstUser() {
+        return userRepository.count() == 0;
+    }
 }

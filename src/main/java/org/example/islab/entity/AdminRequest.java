@@ -29,19 +29,11 @@ public class AdminRequest {
     @Enumerated(value = EnumType.STRING)
     @JdbcType(PostgreSQLEnumJdbcType.class)
     @Column(nullable = false)
-    AdminRequestStatus status;
+    AdminRequestStatus status = AdminRequestStatus.PENDING;
 
-    String comment;
+    String comment = null;
 
-    public AdminRequest(
-            final User user,
-            final AdminRequestStatus status,
-            final String comment,
-            final LocalDateTime requestDate
-    ){
+    public AdminRequest(final User user){
         this.user = user;
-        this.status = status;
-        this.comment = comment;
-        this.requestDate = requestDate;
     }
 }

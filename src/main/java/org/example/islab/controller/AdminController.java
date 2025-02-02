@@ -24,28 +24,34 @@ public class AdminController {
         return adminRequestService.getAll().stream().map(this::convertToDto).toList();
     }
 
-    @PutMapping("/approve")
+    @PutMapping("/approve/{requestId}")
     @RequireRole(UserType.ADMIN)
-    public ResponseEntity<?> approveRequest(@RequestBody Long requestId) {
+    public ResponseEntity<?> approveRequest(@PathVariable Long requestId) {
         AdminRequest updated = adminRequestService.approveRequest(requestId);
         simpMessagingTemplate.convertAndSend("/topic/updatedAdminRequest", updated);
-        return ResponseEntity.noContent().build();
+        return ResponseEntity.ok().build();
     }
 
-    @PutMapping("/decline")
+    @PutMapping("/decline/{requestId}")
     @RequireRole(UserType.ADMIN)
-    public ResponseEntity<?>  rejectRequest(@RequestBody Long requestId) {
+    public ResponseEntity<?> rejectRequest(@PathVariable Long requestId) {
         AdminRequest updated = adminRequestService.rejectRequest(requestId);
         simpMessagingTemplate.convertAndSend("/topic/updatedAdminRequest", updated);
-        return ResponseEntity.noContent().build();
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/request-admin-role")
+    public ResponseEntity<?> requestRole() {
+        AdminRequest req = adminRequestService.requestRole();
+        simpMessagingTemplate.convertAndSend("/topic/newAdminRequest", req);
+        return ResponseEntity.ok().build();
     }
 
     private AdminRequestDTO convertToDto(AdminRequest request){
         return new AdminRequestDTO(
-                new UserDTO(
-                        request.getUser().getUserType(),
-                        request.getUser().getLogin()
-                ),
+                request.getId(),
+                request.getUser().getId(),
+                request.getUser().getLogin(),
                 request.getRequestDate(),
                 request.getStatus(),
                 request.getComment()

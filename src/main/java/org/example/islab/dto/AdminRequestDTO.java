@@ -9,7 +9,9 @@ import java.time.LocalDateTime;
 @Data
 @AllArgsConstructor
 public class AdminRequestDTO {
-    UserDTO user;
+    Long id;
+    Long userId;
+    String login;
     LocalDateTime requestedDate;
     AdminRequestStatus status;
     String comment;
