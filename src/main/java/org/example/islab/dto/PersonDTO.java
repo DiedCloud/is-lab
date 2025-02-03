@@ -11,7 +11,7 @@ import java.time.LocalDate;
 public class PersonDTO {
     Color eyeColor;
     Color hairColor;
-    LocationDTO locationDTO;
+    LocationDTO location;
     LocalDate birthday;
     Float height;
     Integer weight;

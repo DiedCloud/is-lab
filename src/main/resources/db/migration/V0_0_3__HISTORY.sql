@@ -18,21 +18,21 @@ BEGIN
     -- Логирование действия INSERT
     IF TG_OP = 'INSERT' THEN
         INSERT INTO audit_log (table_name, record_id, action, changed_data, user_id)
-        VALUES ('ticket', NEW.id, 'INSERT'::actiontype, row_to_json(NEW), NEW.created_by);
+        VALUES ('ticket', NEW.id, 'INSERT'::actiontype, row_to_json(NEW), NEW.owner_id);
         RETURN NEW;
     END IF;
 
     -- Логирование действия UPDATE
     IF TG_OP = 'UPDATE' THEN
         INSERT INTO audit_log (table_name, record_id, action, changed_data, user_id)
-        VALUES ('ticket', NEW.id, 'UPDATE'::actiontype, row_to_json(NEW), NEW.updated_by);
+        VALUES ('ticket', NEW.id, 'UPDATE'::actiontype, row_to_json(NEW), NEW.owner_id);
         RETURN NEW;
     END IF;
 
     -- Логирование действия DELETE
     IF TG_OP = 'DELETE' THEN
         INSERT INTO audit_log (table_name, record_id, action, changed_data, user_id)
-        VALUES ('ticket', OLD.id, 'DELETE'::actiontype, row_to_json(OLD), OLD.updated_by);
+        VALUES ('ticket', OLD.id, 'DELETE'::actiontype, row_to_json(OLD), OLD.owner_id);
         RETURN OLD;
     END IF;
 

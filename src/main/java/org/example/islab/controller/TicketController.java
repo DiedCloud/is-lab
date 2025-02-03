@@ -132,9 +132,9 @@ public class TicketController {
                         dto.getPerson().getEyeColor(),
                         dto.getPerson().getHairColor(),
                         new Location(
-                                dto.getPerson().getLocationDTO().getX().intValue(),
-                                dto.getPerson().getLocationDTO().getY(),
-                                dto.getPerson().getLocationDTO().getZ()
+                                dto.getPerson().getLocation().getX().intValue(),
+                                dto.getPerson().getLocation().getY(),
+                                dto.getPerson().getLocation().getZ()
                         ),
                         dto.getPerson().getBirthday(),
                         dto.getPerson().getHeight(),
