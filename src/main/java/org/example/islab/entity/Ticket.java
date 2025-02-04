@@ -45,10 +45,10 @@ public class Ticket {
     private TicketType type; //Поле может быть null
 
     @OneToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name = "coordinates_id", unique = true, nullable = false)
+    @JoinColumn(name = "coordinates_id", nullable = false)
     private Coordinates coordinates; //Поле не может быть null
     @OneToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name = "person_id", unique = true, nullable = false)
+    @JoinColumn(name = "person_id", nullable = false)
     private Person person; //Поле может быть null
 
     @ManyToOne

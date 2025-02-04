@@ -89,9 +89,9 @@ create table Ticket
 
     type           Tickettype         not null,
 
-    coordinates_id bigint             not null unique,
+    coordinates_id bigint             not null,
     foreign key (coordinates_id) REFERENCES Coordinates (id) ON DELETE cascade ON UPDATE cascade,
-    person_id      bigint             not null unique,
+    person_id      bigint             not null,
     foreign key (person_id) REFERENCES Person (id) ON DELETE cascade ON UPDATE cascade,
     event_id       bigint,
     foreign key (event_id) REFERENCES Event (id) ON DELETE cascade ON UPDATE cascade,

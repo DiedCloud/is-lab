@@ -49,7 +49,10 @@ public class EventService {
         eventRepository.deleteById(id);
     }
 
-    public void cancelEvent(Long id) {
+    public void cancelEvent(Long id, User user) {
+        if (eventRepository.getReferenceById(id).getOwner() != user
+                && user.getAuthorities().stream().noneMatch((GrantedAuthority it) -> it.getAuthority().equals("ADMIN")))
+            throw new AccessDeniedException("You are not owner of the object");
         eventRepository.cancelEvent(id);
     }
 }

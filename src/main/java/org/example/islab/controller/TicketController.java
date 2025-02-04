@@ -1,5 +1,6 @@
 package org.example.islab.controller;
 
+import jakarta.websocket.server.PathParam;
 import lombok.AllArgsConstructor;
 import org.example.islab.dto.*;
 import org.example.islab.entity.*;
@@ -69,21 +70,21 @@ public class TicketController {
 
     @GetMapping("/find-by-substring")
     @ResponseStatus(HttpStatus.OK)
-    public List<TicketDTO> findBySubstring(@RequestBody String substring) {
+    public List<TicketDTO> findBySubstring(@PathParam("substring") String substring) {
         return ticketService.findBySubstring(substring).stream().map(this::convertToDto).toList();
     }
 
     @GetMapping("/find-by-prefix")
     @ResponseStatus(HttpStatus.OK)
-    public List<TicketDTO> findByPrefix(@RequestBody String prefix) {
+    public List<TicketDTO> findByPrefix(@PathParam("prefix") String prefix) {
         return ticketService.findByPrefix(prefix).stream().map(this::convertToDto).toList();
     }
 
-    @PostMapping("/duplicate-vip")
+    @PostMapping("/duplicate-vip/{id}")
     @ResponseStatus(HttpStatus.CREATED)
     public Long duplicateAsVip(@PathVariable Long id) {
         Ticket saved = ticketService.duplicateAsVip(id);
-        simpMessagingTemplate.convertAndSend("/topic/newTicket", saved);
+        simpMessagingTemplate.convertAndSend("/topic/newTicket", convertToDto(saved));
         return saved.getId();
     }
 

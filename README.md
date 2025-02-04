@@ -12,4 +12,4 @@ Spring boot приложение, выполняющее роль backend-а д�
 2.  Create `src/main/resources/application.properties` file like in
     [application-test.properties](src/main/resources/application-test.properties)
 
-3. Build using Gradle `gradle bootRun`/`gradle bootJar`. The database schema should be built automatically via `hibernate`.
+3. Build using Gradle `gradle bootRun`/`gradle bootJar`. The database schema should be migrated automatically via `flyway`.

@@ -61,7 +61,7 @@ public class EventController {
     @DeleteMapping("/{id}/cancel")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public ResponseEntity<?> cancelEvent(@PathVariable Long id) {
-        eventService.cancelEvent(id);
+        eventService.cancelEvent(id, userService.getCurrentUser());
         simpMessagingTemplate.convertAndSend("/topic/removeEvent", id);
         return ResponseEntity.noContent().build();
     }

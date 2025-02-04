@@ -11,6 +11,7 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.HttpServerErrorException;
 
 import java.util.List;
 
@@ -107,6 +108,7 @@ public class TicketService {
     }
 
     public Ticket duplicateAsVip(Long id) {
-        return ticketRepository.duplicateAsVip(id);
+        return ticketRepository.findById(ticketRepository.duplicateAsVip(id))
+                .orElseThrow(() -> HttpServerErrorException.create(HttpStatusCode.valueOf(500), "Creating error", null, null, null));
     }
 }

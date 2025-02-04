@@ -20,5 +20,5 @@ public interface TicketRepository extends JpaRepository<Ticket, Long> {
     List<Ticket> findByPrefix(@Param("prefix") String prefix);
 
     @Query(value = "SELECT duplicate_ticket_as_vip(:id);", nativeQuery = true)
-    Ticket duplicateAsVip(@Param("id") Long id);
+    Long duplicateAsVip(@Param("id") Long id);
 }

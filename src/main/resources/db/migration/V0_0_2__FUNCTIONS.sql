@@ -28,8 +28,9 @@ CREATE OR REPLACE FUNCTION find_tickets_by_comment_substring(search_text varchar
 BEGIN
     RETURN QUERY
         SELECT *
-        FROM Ticket
-        WHERE comment ILIKE '%' || search_text || '%'; -- Поиск по подстроке с учетом регистра
+        FROM Ticket as t
+        WHERE t.comment ILIKE '%' || search_text || '%'  -- Поиск по подстроке с учетом регистра
+            OR t.name ILIKE '%' || search_text || '%';
 END;
 $$ LANGUAGE plpgsql;
 
@@ -52,8 +53,9 @@ CREATE OR REPLACE FUNCTION find_tickets_by_comment_prefix(prefix_text varchar)
 BEGIN
     RETURN QUERY
         SELECT *
-        FROM Ticket
-        WHERE comment ILIKE prefix_text || '%'; -- Поиск строк, начинающихся с подстроки
+        FROM Ticket as t
+        WHERE t.comment ILIKE prefix_text || '%' -- Поиск строк, начинающихся с подстроки
+           OR t.name ILIKE prefix_text || '%';
 END;
 $$ LANGUAGE plpgsql;
 
