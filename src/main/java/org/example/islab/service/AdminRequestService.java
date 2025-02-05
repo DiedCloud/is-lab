@@ -8,6 +8,7 @@ import org.example.islab.entity.UserType;
 import org.example.islab.repository.AdminRequestRepository;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.HttpClientErrorException;
 
 import java.util.List;
@@ -41,6 +42,7 @@ public class AdminRequestService {
         }
     }
 
+    @Transactional
     public AdminRequest approveRequest(Long requestId) {
         AdminRequest request = adminRequestRepository.findById(requestId).orElseThrow(
                 () -> HttpClientErrorException.create(HttpStatusCode.valueOf(404), "Role request not found", null, null, null)
@@ -55,6 +57,7 @@ public class AdminRequestService {
         return request;
     }
 
+    @Transactional
     public AdminRequest rejectRequest(Long requestId) {
         AdminRequest request = adminRequestRepository.findById(requestId).orElseThrow(
                 () -> HttpClientErrorException.create(HttpStatusCode.valueOf(404), "Role request not found", null, null, null)

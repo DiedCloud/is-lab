@@ -7,6 +7,7 @@ import org.example.islab.repository.VenueRepository;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -20,13 +21,16 @@ public class VenueService {
     }
 
     public Venue getById(Long id){
-        return venueRepository.getReferenceById(id);
+        return venueRepository.findById(id).orElseThrow(
+                () -> HttpClientErrorException.create(HttpStatusCode.valueOf(404), "Venue not found", null, null, null)
+        );
     }
 
     public Venue create(Venue entity){
         return venueRepository.save(entity);
     }
 
+    @Transactional
     public Venue updateById(Long id, Venue entity, User user){
         Venue currentVenue = venueRepository.getReferenceById(id);
 

@@ -4,9 +4,11 @@ import lombok.AllArgsConstructor;
 import org.example.islab.entity.Event;
 import org.example.islab.entity.User;
 import org.example.islab.repository.EventRepository;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -20,13 +22,16 @@ public class EventService {
     }
 
     public Event getById(Long id){
-        return eventRepository.getReferenceById(id);
+        return eventRepository.findById(id).orElseThrow(
+                () -> HttpClientErrorException.create(HttpStatusCode.valueOf(404), "Event not found", null, null, null)
+        );
     }
 
     public Event create(Event entity){
         return eventRepository.save(entity);
     }
 
+    @Transactional
     public Event updateById(Long id, Event entity, User user){
         Event currentEvent = eventRepository.getReferenceById(id);
 

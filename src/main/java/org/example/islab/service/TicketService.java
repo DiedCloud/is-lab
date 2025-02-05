@@ -10,6 +10,7 @@ import org.springframework.http.HttpStatusCode;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
 
@@ -33,6 +34,7 @@ public class TicketService {
         );
     }
 
+    @Transactional
     public Ticket create(Ticket entity){
         coordinatesRepository.save(entity.getCoordinates());
         locationRepository.save(entity.getPerson().getLocation());
@@ -40,6 +42,7 @@ public class TicketService {
         return ticketRepository.save(entity);
     }
 
+    @Transactional
     public Ticket updateById(Long id, Ticket entity, User user){
         Ticket currentTicket = ticketRepository.findById(id).orElseThrow(
                 () -> HttpClientErrorException.create(HttpStatusCode.valueOf(404), "Ticket not found", null, null, null)
