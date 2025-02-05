@@ -10,7 +10,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.List;
 
 @RestController
@@ -56,6 +58,20 @@ public class EventController {
         eventService.deleteById(id, userService.getCurrentUser());
         simpMessagingTemplate.convertAndSend("/topic/removeEvent", id);
         return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/upload-file")
+    @ResponseStatus(HttpStatus.OK)
+    public ResponseEntity<?> uploadFile(@RequestParam("file") MultipartFile file){
+        try {
+            List<Event> data = eventService.uploadFile(file, userService.getCurrentUser());
+            for (Event datum : data) {
+                simpMessagingTemplate.convertAndSend("/topic/newTicket", convertToDto(datum));
+            }
+            return ResponseEntity.ok().build();
+        } catch (IOException e) {
+            return ResponseEntity.badRequest().body(null);
+        }
     }
 
     @DeleteMapping("/{id}/cancel")
