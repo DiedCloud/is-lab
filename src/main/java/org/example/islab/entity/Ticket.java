@@ -15,9 +15,6 @@ import java.time.LocalDate;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(
-        uniqueConstraints=@UniqueConstraint(columnNames={"number", "type"})
-)
 public class Ticket {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

@@ -7,6 +7,7 @@ import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.example.islab.entity.*;
 import org.example.islab.repository.VenueRepository;
+import org.example.islab.validation.VenueValidator;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.GrantedAuthority;
@@ -24,24 +25,29 @@ import java.util.List;
 @AllArgsConstructor
 public class VenueService {
     private final VenueRepository venueRepository;
+    private final VenueValidator venueValidator;
     private final HistoryService historyService;
 
-    public List<Venue> getAll(){
+    public List<Venue> getAll() {
         return venueRepository.findAll();
     }
 
-    public Venue getById(Long id){
+    public Venue getById(Long id) {
         return venueRepository.findById(id).orElseThrow(
                 () -> HttpClientErrorException.create(HttpStatusCode.valueOf(404), "Venue not found", null, null, null)
         );
     }
 
-    public Venue create(Venue entity){
-        return venueRepository.save(entity);
+    public Venue create(Venue entity) throws IllegalArgumentException {
+        if (venueValidator.validateVenue(entity)) {
+            return venueRepository.save(entity);
+        } else {
+            throw new IllegalArgumentException("Venue name must be unique!");
+        }
     }
 
     @Transactional
-    public Venue updateById(Long id, Venue entity, User user){
+    public Venue updateById(Long id, Venue entity, User user) {
         Venue currentVenue = venueRepository.getReferenceById(id);
 
         if (currentVenue.getOwner() != user
@@ -52,10 +58,14 @@ public class VenueService {
         currentVenue.setCapacity(entity.getCapacity());
         currentVenue.setType(entity.getType());
 
-        return venueRepository.save(currentVenue);
+        if (venueValidator.validateVenue(currentVenue)) {
+            return venueRepository.save(currentVenue);
+        } else {
+            throw new IllegalArgumentException("Venue name must be unique!");
+        }
     }
 
-    public void deleteById(Long id, User user){
+    public void deleteById(Long id, User user) {
         if (venueRepository.getReferenceById(id).getOwner() != user
                 && user.getAuthorities().stream().noneMatch((GrantedAuthority it) -> it.getAuthority().equals("ADMIN")))
             throw new AccessDeniedException("You are not owner of the object");
@@ -79,11 +89,15 @@ public class VenueService {
                 v.setType(VenueType.valueOf(row.getCell(2).getStringCellValue()));
                 v.setOwner(user);
 
-                venueRepository.save(v);
+                if (venueValidator.validateVenue(v)) {
+                    venueRepository.save(v);
+                } else {
+                    throw new IllegalArgumentException("Venue name must be unique!");
+                }
 
                 res.add(v);
             }
-        } catch (Exception e){
+        } catch (Exception e) {
             historyService.create(ImportStatus.FAILED, 0L, user);
             throw e;
         }

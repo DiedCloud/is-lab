@@ -9,11 +9,13 @@ import org.example.islab.repository.CoordinatesRepository;
 import org.example.islab.repository.LocationRepository;
 import org.example.islab.repository.PersonRepository;
 import org.example.islab.repository.TicketRepository;
+import org.example.islab.validation.TicketValidator;
 import org.springframework.data.jpa.convert.threeten.Jsr310JpaConverters;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
@@ -34,6 +36,7 @@ public class TicketService {
     private final EventService eventService;
     private final VenueService venueService;
     private final HistoryService historyService;
+    private final TicketValidator ticketValidator;
 
     public List<Ticket> getAll(){
         return ticketRepository.findAll();
@@ -45,15 +48,20 @@ public class TicketService {
         );
     }
 
-    @Transactional
+    @Transactional(isolation = Isolation.REPEATABLE_READ)
     public Ticket create(Ticket entity){
         coordinatesRepository.save(entity.getCoordinates());
         locationRepository.save(entity.getPerson().getLocation());
         personRepository.save(entity.getPerson());
-        return ticketRepository.save(entity);
+
+        if (ticketValidator.validateTicket(entity)) {
+            return ticketRepository.save(entity);
+        } else {
+            throw new IllegalArgumentException("Ticket type/number must be unique!");
+        }
     }
 
-    @Transactional
+    @Transactional(isolation = Isolation.REPEATABLE_READ)
     public Ticket updateById(Long id, Ticket entity, User user){
         Ticket currentTicket = ticketRepository.findById(id).orElseThrow(
                 () -> HttpClientErrorException.create(HttpStatusCode.valueOf(404), "Ticket not found", null, null, null)
@@ -95,7 +103,11 @@ public class TicketService {
         currentTicket.setComment(entity.getComment());
         currentTicket.setVenue(entity.getVenue());
 
-        return ticketRepository.save(currentTicket);
+        if (ticketValidator.validateTicket(currentTicket)) {
+            return ticketRepository.save(currentTicket);
+        } else {
+            throw new IllegalArgumentException("Ticket type/number must be unique!");
+        }
     }
 
     public void deleteById(Long id, User user){
@@ -109,7 +121,7 @@ public class TicketService {
         ticketRepository.deleteById(id);
     }
 
-    @Transactional
+    @Transactional(isolation = Isolation.REPEATABLE_READ)
     public List<Ticket> uploadFile(MultipartFile file, User user) throws IOException {
         Jsr310JpaConverters.LocalDateConverter ldc = new Jsr310JpaConverters.LocalDateConverter();
         List<Ticket> res = new ArrayList<>();
@@ -159,6 +171,12 @@ public class TicketService {
                 t.setVenue(venueService.getById((long) row.getCell(18).getNumericCellValue()));
 
                 t.setOwner(user);
+
+                if (ticketValidator.validateTicket(t)) {
+                    ticketRepository.save(t);
+                } else {
+                    throw new IllegalArgumentException("Ticket type/number must be unique!");
+                }
 
                 res.add(t);
             }
