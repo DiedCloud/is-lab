@@ -14,7 +14,6 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
 import java.util.List;
 
 @RestController
@@ -73,8 +72,8 @@ public class TicketController {
                 simpMessagingTemplate.convertAndSend("/topic/newTicket", convertToDto(datum));
             }
             return ResponseEntity.ok().build();
-        } catch (IOException e) {
-            return ResponseEntity.badRequest().body(null);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getLocalizedMessage());
         }
     }
 

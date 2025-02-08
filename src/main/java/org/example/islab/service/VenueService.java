@@ -7,6 +7,7 @@ import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.example.islab.entity.*;
 import org.example.islab.repository.VenueRepository;
+import org.example.islab.util.RandomStringGenerator;
 import org.example.islab.validation.VenueValidator;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.security.access.AccessDeniedException;
@@ -16,7 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
+import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
@@ -27,6 +28,7 @@ public class VenueService {
     private final VenueRepository venueRepository;
     private final VenueValidator venueValidator;
     private final HistoryService historyService;
+    private final MinioService minioService;
 
     public List<Venue> getAll() {
         return venueRepository.findAll();
@@ -74,9 +76,19 @@ public class VenueService {
     }
 
     @Transactional
-    public List<Venue> uploadFile(MultipartFile file, User user) throws IOException {
+    public List<Venue> uploadFile(MultipartFile file, User user) throws Exception {
         List<Venue> res = new ArrayList<>();
-        try (InputStream inputStream = file.getInputStream(); Workbook workbook = new XSSFWorkbook(inputStream)) {
+        String fileName = RandomStringGenerator.getRandomString(10) + "_";
+
+        byte[] fileBytes = file.getBytes(); // Читаем файл в массив байтов для переиспользования
+
+        try (InputStream inputStream = new ByteArrayInputStream(fileBytes); Workbook workbook = new XSSFWorkbook(inputStream)) {
+            if (file.getOriginalFilename() != null){
+                String[] t = file.getOriginalFilename().split("/");
+                fileName += t[t.length - 1];
+            } else {
+                fileName += "EmptyName";
+            }
 
             Sheet sheet = workbook.getSheetAt(0); // Берем первый лист
 
@@ -89,19 +101,23 @@ public class VenueService {
                 v.setType(VenueType.valueOf(row.getCell(2).getStringCellValue()));
                 v.setOwner(user);
 
-                if (venueValidator.validateVenue(v)) {
-                    venueRepository.save(v);
-                } else {
-                    throw new IllegalArgumentException("Venue name must be unique!");
-                }
-
                 res.add(v);
             }
+
+            if (res.stream().allMatch(venueValidator::validateVenue)){
+                venueRepository.saveAll(res);
+            }
+            else {
+                throw new IllegalArgumentException("Venue name must be unique!");
+            }
+            try (InputStream minioInputStream = new ByteArrayInputStream(fileBytes)) {
+                minioService.uploadFile(fileName, minioInputStream, file.getSize(), file.getContentType());
+            }
         } catch (Exception e) {
-            historyService.create(ImportStatus.FAILED, 0L, user);
+            historyService.create(ImportStatus.FAILED, fileName, 0L, user);
             throw e;
         }
-        historyService.create(ImportStatus.SUCCESS, (long) res.size(), user);
+        historyService.create(ImportStatus.SUCCESS, fileName, (long) res.size(), user);
         return res;
     }
 }

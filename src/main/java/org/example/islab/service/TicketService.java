@@ -9,6 +9,7 @@ import org.example.islab.repository.CoordinatesRepository;
 import org.example.islab.repository.LocationRepository;
 import org.example.islab.repository.PersonRepository;
 import org.example.islab.repository.TicketRepository;
+import org.example.islab.util.RandomStringGenerator;
 import org.example.islab.validation.TicketValidator;
 import org.springframework.data.jpa.convert.threeten.Jsr310JpaConverters;
 import org.springframework.http.HttpStatusCode;
@@ -21,7 +22,7 @@ import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
+import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
@@ -37,6 +38,7 @@ public class TicketService {
     private final VenueService venueService;
     private final HistoryService historyService;
     private final TicketValidator ticketValidator;
+    private final MinioService minioService;
 
     public List<Ticket> getAll(){
         return ticketRepository.findAll();
@@ -122,10 +124,20 @@ public class TicketService {
     }
 
     @Transactional(isolation = Isolation.REPEATABLE_READ)
-    public List<Ticket> uploadFile(MultipartFile file, User user) throws IOException {
+    public List<Ticket> uploadFile(MultipartFile file, User user) throws Exception {
         Jsr310JpaConverters.LocalDateConverter ldc = new Jsr310JpaConverters.LocalDateConverter();
         List<Ticket> res = new ArrayList<>();
-        try (InputStream inputStream = file.getInputStream(); Workbook workbook = new XSSFWorkbook(inputStream)) {
+        String fileName = RandomStringGenerator.getRandomString(10) + "_";
+
+        byte[] fileBytes = file.getBytes(); // Читаем файл в массив байтов для переиспользования
+
+        try (InputStream inputStream = new ByteArrayInputStream(fileBytes); Workbook workbook = new XSSFWorkbook(inputStream)) {
+            if (file.getOriginalFilename() != null){
+                String[] t = file.getOriginalFilename().split("/");
+                fileName += t[t.length - 1];
+            } else {
+                fileName += "EmptyName";
+            }
 
             Sheet sheet = workbook.getSheetAt(0); // Берем первый лист
 
@@ -172,19 +184,22 @@ public class TicketService {
 
                 t.setOwner(user);
 
-                if (ticketValidator.validateTicket(t)) {
-                    ticketRepository.save(t);
-                } else {
-                    throw new IllegalArgumentException("Ticket type/number must be unique!");
-                }
-
                 res.add(t);
             }
+            if (res.stream().allMatch(ticketValidator::validateTicket)){
+                ticketRepository.saveAll(res);
+            }
+            else {
+                throw new IllegalArgumentException("Ticket type/number must be unique!");
+            }
+            try (InputStream minioInputStream = new ByteArrayInputStream(fileBytes)) {
+                minioService.uploadFile(fileName, minioInputStream, file.getSize(), file.getContentType());
+            }
         } catch (Exception e){
-            historyService.create(ImportStatus.FAILED, 0L, user);
+            historyService.create(ImportStatus.FAILED, fileName, 0L, user);
             throw e;
         }
-        historyService.create(ImportStatus.SUCCESS, (long) res.size(), user);
+        historyService.create(ImportStatus.SUCCESS, fileName, (long) res.size(), user);
         return res;
     }
 

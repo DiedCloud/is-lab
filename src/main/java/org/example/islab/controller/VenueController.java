@@ -69,8 +69,8 @@ public class VenueController {
                 simpMessagingTemplate.convertAndSend("/topic/newVenue", convertToDto(datum));
             }
             return ResponseEntity.ok().build();
-        } catch (IOException e) {
-            return ResponseEntity.badRequest().body(null);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getLocalizedMessage());
         }
     }
 

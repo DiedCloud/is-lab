@@ -9,6 +9,7 @@ import org.example.islab.entity.Event;
 import org.example.islab.entity.ImportStatus;
 import org.example.islab.entity.User;
 import org.example.islab.repository.EventRepository;
+import org.example.islab.util.RandomStringGenerator;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.GrantedAuthority;
@@ -17,7 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
+import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
@@ -27,6 +28,7 @@ import java.util.List;
 public class EventService {
     private final EventRepository eventRepository;
     private final HistoryService historyService;
+    private final MinioService minioService;
 
     public List<Event> getAll(){
         return eventRepository.findAll();
@@ -66,9 +68,19 @@ public class EventService {
     }
 
     @Transactional
-    public List<Event> uploadFile(MultipartFile file, User user) throws IOException {
+    public List<Event> uploadFile(MultipartFile file, User user) throws Exception {
         List<Event> res = new ArrayList<>();
-        try (InputStream inputStream = file.getInputStream(); Workbook workbook = new XSSFWorkbook(inputStream)) {
+        String fileName = RandomStringGenerator.getRandomString(10) + "_";
+
+        byte[] fileBytes = file.getBytes(); // Читаем файл в массив байтов для переиспользования
+
+        try (InputStream inputStream = new ByteArrayInputStream(fileBytes); Workbook workbook = new XSSFWorkbook(inputStream)) {
+            if (file.getOriginalFilename() != null){
+                String[] t = file.getOriginalFilename().split("/");
+                fileName += t[t.length - 1];
+            } else {
+                fileName += "EmptyName";
+            }
 
             Sheet sheet = workbook.getSheetAt(0); // Берем первый лист
 
@@ -81,15 +93,18 @@ public class EventService {
                 e.setTicketsCount((int) row.getCell(2).getNumericCellValue());
                 e.setOwner(user);
 
-                eventRepository.save(e);
-
                 res.add(e);
             }
+
+            eventRepository.saveAll(res);
+            try (InputStream minioInputStream = new ByteArrayInputStream(fileBytes)) {
+                minioService.uploadFile(fileName, minioInputStream, file.getSize(), file.getContentType());
+            }
         } catch (Exception e){
-            historyService.create(ImportStatus.FAILED, 0L, user);
+            historyService.create(ImportStatus.FAILED, fileName, 0L, user);
             throw e;
         }
-        historyService.create(ImportStatus.SUCCESS, (long) res.size(), user);
+        historyService.create(ImportStatus.SUCCESS, fileName, (long) res.size(), user);
         return res;
     }
 
