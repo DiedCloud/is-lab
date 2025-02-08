@@ -46,7 +46,7 @@ public class HistoryController {
     }
 
     @DeleteMapping("/{id}")
-    public void delete(@PathVariable Long id) throws Exception {
+    public void delete(@PathVariable Long id) {
         this.historyService.deleteById(id, userService.getCurrentUser());
         simpMessagingTemplate.convertAndSend("/topic/removeImport", id);
     }

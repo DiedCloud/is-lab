@@ -67,7 +67,7 @@ public class EventService {
         eventRepository.deleteById(id);
     }
 
-    @Transactional
+    @Transactional(noRollbackFor = IllegalArgumentException.class)
     public List<Event> uploadFile(MultipartFile file, User user) throws Exception {
         List<Event> res = new ArrayList<>();
         String fileName = RandomStringGenerator.getRandomString(10) + "_";
@@ -102,7 +102,7 @@ public class EventService {
             }
         } catch (Exception e){
             historyService.create(ImportStatus.FAILED, fileName, 0L, user);
-            throw e;
+            throw new RuntimeException("MinIO error!", e);
         }
         historyService.create(ImportStatus.SUCCESS, fileName, (long) res.size(), user);
         return res;

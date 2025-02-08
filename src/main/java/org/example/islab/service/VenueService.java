@@ -75,7 +75,7 @@ public class VenueService {
         venueRepository.deleteById(id);
     }
 
-    @Transactional
+    @Transactional(noRollbackFor = IllegalArgumentException.class)
     public List<Venue> uploadFile(MultipartFile file, User user) throws Exception {
         List<Venue> res = new ArrayList<>();
         String fileName = RandomStringGenerator.getRandomString(10) + "_";
@@ -114,8 +114,8 @@ public class VenueService {
                 minioService.uploadFile(fileName, minioInputStream, file.getSize(), file.getContentType());
             }
         } catch (Exception e) {
-            historyService.create(ImportStatus.FAILED, fileName, 0L, user);
-            throw e;
+            historyService.create(ImportStatus.FAILED, fileName, 0L, user); // если не fileName, то лучше унести в контроллер и не засовывать в create нотификацию по web socket
+            throw new RuntimeException("MinIO error!", e);
         }
         historyService.create(ImportStatus.SUCCESS, fileName, (long) res.size(), user);
         return res;

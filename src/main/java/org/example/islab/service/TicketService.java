@@ -123,7 +123,7 @@ public class TicketService {
         ticketRepository.deleteById(id);
     }
 
-    @Transactional(isolation = Isolation.REPEATABLE_READ)
+    @Transactional(isolation = Isolation.REPEATABLE_READ, noRollbackFor = IllegalArgumentException.class)
     public List<Ticket> uploadFile(MultipartFile file, User user) throws Exception {
         Jsr310JpaConverters.LocalDateConverter ldc = new Jsr310JpaConverters.LocalDateConverter();
         List<Ticket> res = new ArrayList<>();
@@ -197,7 +197,7 @@ public class TicketService {
             }
         } catch (Exception e){
             historyService.create(ImportStatus.FAILED, fileName, 0L, user);
-            throw e;
+            throw new RuntimeException("MinIO error!", e);
         }
         historyService.create(ImportStatus.SUCCESS, fileName, (long) res.size(), user);
         return res;

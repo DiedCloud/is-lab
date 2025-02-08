@@ -40,7 +40,19 @@ public class MinioService {
     }
 
     public void deleteFile(String objectName) throws Exception {
-        RemoveObjectArgs args = RemoveObjectArgs.builder().bucket(this.bucketName).object(objectName).build();
-        minioClient.removeObject(args);
+        if (fileExists(objectName)) {
+            RemoveObjectArgs args = RemoveObjectArgs.builder().bucket(this.bucketName).object(objectName).build();
+            minioClient.removeObject(args);
+        }
+    }
+
+    public boolean fileExists(String objectName) {
+        try {
+            StatObjectArgs args = StatObjectArgs.builder().bucket(bucketName).object(objectName).build();
+            minioClient.statObject(args);
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
     }
 }

@@ -11,6 +11,7 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.HttpClientErrorException;
 
@@ -38,6 +39,7 @@ public class HistoryService {
         );
     }
 
+    @Transactional(propagation = Propagation.REQUIRES_NEW)  
     public History create(ImportStatus status, String fileName, Long addedCount, User user) {
         History history = new History(status, fileName, addedCount, user);
         history = historyRepository.save(history);
@@ -46,7 +48,7 @@ public class HistoryService {
     }
 
     @Transactional
-    public void deleteById(Long id, User user) throws Exception {
+    public void deleteById(Long id, User user) {
         History his = historyRepository.findById(id).orElseThrow(
                 () -> HttpClientErrorException.create(HttpStatusCode.valueOf(404), "History row not found", null, null, null)
         );
@@ -54,8 +56,12 @@ public class HistoryService {
                 && user.getAuthorities().stream().noneMatch((GrantedAuthority it) -> it.getAuthority().equals("ADMIN")))
             throw new AccessDeniedException("You are not loader of the object");
 
-        minioService.deleteFile(his.getFileName());
-        historyRepository.deleteById(id);
+        historyRepository.deleteById(id); // если ошибка бд - до minIO не дойдет
+        try {
+            minioService.deleteFile(his.getFileName()); // если ошибка minIO - откат транзакции
+        } catch (Exception e) {
+            throw new RuntimeException("MinIO error!", e);
+        }
     }
 
     public InputStream getFile(History his) throws Exception {
