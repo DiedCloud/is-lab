@@ -21,6 +21,9 @@ public class History {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @NotNull
+    private String fileName;
+
     @Enumerated
     @JdbcType(PostgreSQLEnumJdbcType.class)
     @NotNull
@@ -34,8 +37,9 @@ public class History {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    public History(ImportStatus status, Long addedCount, User user){
+    public History(ImportStatus status, String fileName, Long addedCount, User user){
         this.status = status;
+        this.fileName = fileName;
         this.addedCount = addedCount;
         this.user = user;
     }

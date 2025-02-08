@@ -8,6 +8,7 @@ import org.example.islab.entity.ImportStatus;
 @AllArgsConstructor
 public class HistoryDTO {
     Long id;
+    String fileName;
     ImportStatus status;
     Long userId;
     String login;
